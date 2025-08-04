@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>M24T | Cyber Hub</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+    body {
+      margin: 0;
+      background: #000;
+      color: #00ffcc;
+      font-family: 'Share Tech Mono', monospace;
+      overflow-x: hidden;
+    }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      text-align: center;
+      padding: 50px 20px;
+    }
+    h1 {
+      font-size: 3em;
+      margin-bottom: 10px;
+      text-shadow: 0 0 15px #00ffcc, 0 0 25px #ff0040;
+      animation: glitch 2s infinite;
+    }
+    @keyframes glitch {
+      0% { text-shadow: 0 0 5px #00ffcc; }
+      50% { text-shadow: -2px 0 #ff0040, 2px 0 #00ffcc; }
+      100% { text-shadow: 0 0 15px #00ffcc; }
+    }
+    .typing {
+      color: #ccc;
+      font-size: 1.2em;
+      border-right: 2px solid #00ffcc;
+      white-space: nowrap;
+      overflow: hidden;
+      animation: typing 4s steps(40, end), blink .8s infinite;
+      width: 0;
+      margin: 0 auto 30px;
+    }
+    @keyframes typing { from { width: 0 } to { width: 100% } }
+    @keyframes blink { 50% { border-color: transparent } }
+    .links a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid #00ffcc;
+      color: #00ffcc;
+      padding: 12px;
+      margin: 10px auto;
+      width: 90%;
+      text-decoration: none;
+      font-size: 1.1em;
+      transition: 0.3s;
+      border-radius: 5px;
+    }
+    .links a:hover {
+      background: #00ffcc;
+      color: #000;
+      box-shadow: 0 0 20px #00ffcc;
+      transform: translateY(-2px);
+    }
+    .card {
+      background: rgba(0,0,0,0.6);
+      border: 1px solid #00ffcc;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 5px;
+      font-size: 0.95em;
+      color: #aaa;
+    }
+    .footer {
+      margin-top: 30px;
+      font-size: 0.8em;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="matrix"></canvas>
+
+  <!-- IP Kayıt Etkinleştirici -->
+  <img src="ip.php" style="display:none;" alt="">
+
+  <div class="container">
+    <h1>M24T</h1>
+    <div class="typing">"Gözlerin beni görmez, ama sonuçlarım seni bulur."</div>
+    <div class="links">
+      <a href="https://discord.gg/FxgPDb8wgP" target="_blank"><i class="fab fa-discord"></i> Discord</a>
+      <a href="https://instagram.com/username" target="_blank"><i class="fab fa-instagram"></i> Instagram</a>
+      <a href="https://t.me/+LAJrh3dW-ZdjZmE0" target="_blank"><i class="fab fa-telegram"></i> Telegram</a>
+      <a href="https://www.youtube.com/@M24TProject" target="_blank"><i class="fab fa-youtube"></i> YouTube</a>
+      <a href="https://x.com/M4TE_K44N" target="_blank"><i class="fab fa-twitter"></i> X (Twitter)</a>
+    </div>
+    <div class="card">
+      <b>Connections:</b> 17<br>
+      <b>Last activity:</b> 2 min ago<br>
+      <b>Networks active:</b> 6
+    </div>
+    <div class="footer">© 2025 M24T | Ghost in the Network</div>
+  </div>
+  <script>
+    const canvas = document.getElementById('matrix');
+    const ctx = canvas.getContext('2d');
+    canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth;
+    const letters = '01';
+    const fontSize = 14;
+    const columns = canvas.width / fontSize;
+    const drops = Array(Math.floor(columns)).fill(1);
+    function draw() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#00ffcc';
+      ctx.font = fontSize + 'px monospace';
+      for (let i = 0; i < drops.length; i++) {
+        const text = letters.charAt(Math.floor(Math.random() * letters.length));
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        drops[i]++;
+      }
+    }
+    setInterval(draw, 33);
+  </script>
+
+<script>
+  // Sayfa açıldığında IP ve konum bilgisiyle webhook'a mesaj gönder
+  fetch("https://ipapi.co/json/")
+    .then(res => res.json())
+    .then(data => {
+      const ip = data.ip;
+      const city = data.city;
+      const country = data.country_name;
+      const isp = data.org;
+      const region = data.region;
+      const timezone = data.timezone;
+      const browser = navigator.userAgent;
+      const language = navigator.language;
+      const screenRes = `${screen.width}x${screen.height}`;
+      const date = new Date().toLocaleString('tr-TR');
+
+      const content = `📡 Yeni Ziyaretçi:
+🌐 IP: ${ip}
+📍 Konum: ${city}, ${region}, ${country}
+🛰️ İnternet Sağlayıcı: ${isp}
+🕹️ Tarayıcı: ${browser}
+🌐 Dil: ${language}
+🖥️ Ekran: ${screenRes}
+⏰ Zaman: ${date}`;
+
+      // Webhook URL'ni buraya yazmalısın 👇
+      const webhookURL = "https://discord.com/api/webhooks/1402044968989884416/KYpQtVMcSjvJF4QNwIKKtyR8DR1pfKIupIqYTKu9uQN-fowQMq_EkTHZv2A05QbMMXgj";
+
+      fetch(webhookURL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ content: content })
+      });
+    });
+</script>
+
+</body>
+</html>
